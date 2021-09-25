@@ -1,8 +1,63 @@
 using System;
 
-public enum UserType {
-    Client  = 0,
-    Admin   = 1
+public class User {
+    public string PhoneNumber {get; init;}
+    public UserType Type {get; init;}
+    public Gender Gender {get; init;}
+    public PassportData PassportData {get; init;}
+    public MaritalStatus MaritalStatus {get; init;}
+    public Citizenship Citizenship {get; init;}
+
+    public User() {}
+
+    public int CalculateScore() {
+        int score = 0;
+
+        score += MaritalStatus switch {
+            MaritalStatus.Unmarried => 1,
+            MaritalStatus.Married   => 2,
+            MaritalStatus.Divorsed  => 1,
+            MaritalStatus.Widow     => 2,
+            _ => throw new Exception("Undefined martial status")
+        };
+        
+        score += (int)Citizenship;
+        score += (int)Gender;
+
+        int age = PassportData.Age;
+
+        if(age < 26) {
+            score += 0;
+        } else if (age < 36) {
+            score += 1;
+        } else if (age < 63) {
+            score += 2;
+        } else {
+            score += 1;
+        }
+
+        return score;
+    }
+
+    public override string ToString() {
+        string martialStatusString = MaritalStatus switch {
+            MaritalStatus.Unmarried => (Gender == Gender.Male ? "Не женат" : "Не замужем"),
+            MaritalStatus.Married   => (Gender == Gender.Male ? "Женат" : "Замужем"),
+            MaritalStatus.Divorsed  => "в Разводе",
+            MaritalStatus.Widow     => (Gender == Gender.Male ? "Вдовец" : "Вдова"),
+            _ => throw new Exception("Undefined martial status")
+        };
+        string result =
+            $"Имя: {PassportData.FirstName}, " +
+            $"Фамилия: {PassportData.LastName}, " +
+            $"Очество: {PassportData.MiddleName}, " +
+            $"Дата рождения: {PassportData.BirthDate}, " +
+            $"Пол: {(Gender == Gender.Male ? "Мужчина" : "Женщина")}, " +
+            $"Семейное положение: {martialStatusString}, " +
+            $"Гражданство: {(Citizenship == Citizenship.Tajik ? "Таджик" : "Иностранец")}, " +
+            $"Номер телефона: {PhoneNumber}";
+        return result;
+    }
 }
 
 public class PassportData {
@@ -10,30 +65,29 @@ public class PassportData {
     public string MiddleName {get; set;}
     public string LastName {get; set;}
     public DateTime BirthDate {get; set;}
+    public int Age => (int)((DateTime.Now - BirthDate).TotalDays / 365);
 
     public PassportData() {}
 }
 
-public class User {
-    public string PhoneNumber {get; private set;}
-    public UserType Type {get; private set;}
-    public PassportData PassportData {get; private set;}
+public enum UserType {
+    Client  = 0,
+    Admin   = 1
+}
 
-    public User() {}
+public enum Gender {
+    Male    = 1,
+    Female  = 2,
+}
 
-    public User(string phoneNumber, UserType type, PassportData passportData) {
-        PhoneNumber = phoneNumber;
-        Type = type;
-        PassportData = passportData;
-    }
+public enum MaritalStatus { //семейное положение
+    Unmarried   = 1,
+    Married     = 2,
+    Divorsed    = 3,
+    Widow       = 4,
+}
 
-    public override string ToString() {
-        string result =
-            $"Имя: {PassportData.FirstName}, " +
-            $"Фамилия: {PassportData.LastName}, " +
-            $"Очество: {PassportData.MiddleName}, " +
-            $"Дата рождения: {PassportData.BirthDate}, " +
-            $"Номер телефона: {PhoneNumber}";
-        return result;
-    }
+public enum Citizenship {
+    Foreigner   = 0,
+    Tajik       = 1,
 }
