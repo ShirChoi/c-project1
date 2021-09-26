@@ -3,19 +3,31 @@
 namespace MySystem {
     class Program {
         static void Main(string[] args) {
+            string connectionString = "Server=DESKTOP-CT0BSVJ\\DEV;" +
+                                      "Database=Sarvar Bank;" +
+                                      "Trusted_Connection=True;";
+            
+            SQLQueryHandler queryHandler = new SQLQueryHandler(connectionString);
+            System.Console.WriteLine("Добро пожаловать в Sarvar Bank");
+            
+            int choice = 0;
 
-            /*Console.WriteLine(
-                "Добро пожаловать в Sarvar Bank\n" +
-                "1. регистрация\n" +
-                "2. авторизация"
-            );*/
-
-            User test = Register();
-            System.Console.WriteLine(test);  
+            while(!(choice >= 1 && choice <= 2)) {
+                Console.WriteLine(
+                    "1. регистрация\n" +
+                    "2. авторизация"
+                );
+                bool validInput = int.TryParse(Console.ReadLine(), out choice);
+                if(!validInput || !(choice >= 1 && choice <= 2))
+                    Console.WriteLine("выбор должен быть числом в промежутке 1-2");
+            }
+            
+            User user = choice == 1 ? Register(queryHandler) : LogIn(queryHandler);
+            Console.WriteLine(user);  
         }
 
         
-        public static User Register() {
+        public static User Register(SQLQueryHandler queryHandler) {
             bool registered = false;
 
             string userPhoneNumber = "ABOBA";
@@ -24,6 +36,7 @@ namespace MySystem {
             Gender userGender = Gender.Male;
             MaritalStatus userMartialStatus = MaritalStatus.Unmarried;
             Citizenship userCitizenship = Citizenship.Foreigner;
+            User resultUser = null;
 
             while(!registered) {
                 
@@ -31,9 +44,10 @@ namespace MySystem {
                 
                 while(takenNumber) {
                     Console.Write("Введите номер телефона: ");
-                    userPhoneNumber  = Console.ReadLine();
+                    userPhoneNumber = Console.ReadLine();
                 
-                    takenNumber = false; //TODO: добвить проверку занят ли номера телефона
+                    takenNumber = queryHandler.GetUserByNumber(userPhoneNumber) != null;
+
                     if(takenNumber){
                         Console.WriteLine("Пользователь с таким номером уже существует");
                     
@@ -52,11 +66,11 @@ namespace MySystem {
                 while(!validDate){
                     Console.Write("Введите дату рождения\n");
                 
-                    System.Console.Write("день: ");
+                    Console.Write("день: ");
                     int day = int.Parse(Console.ReadLine());
-                    System.Console.Write("месяц: ");
+                    Console.Write("месяц: ");
                     int month = int.Parse(Console.ReadLine());
-                    System.Console.Write("год: ");
+                    Console.Write("год: ");
                     int year = int.Parse(Console.ReadLine());
                     
                     try {
@@ -67,7 +81,7 @@ namespace MySystem {
                         );
                         
                         validDate = true;
-                    } catch (System.Exception) {
+                    } catch (Exception) {
                         Console.WriteLine("Неправильная дата");
                     }
                 }
@@ -96,7 +110,7 @@ namespace MySystem {
 
                 bool validMStatus = false;
                 while(!validMStatus) {
-                    System.Console.WriteLine(
+                    Console.WriteLine(
                         "Введите своё семейное положение:\n" +
                         "1. Не женат / Не замужем\n" +
                         "2. Женат / Замужем\n" +
@@ -108,13 +122,13 @@ namespace MySystem {
                     
                     try {
                         choice = int.Parse(Console.ReadLine());
-                    } catch (System.Exception) {
-                        System.Console.WriteLine("выбор должен числом быть в промежутке 1-4");
+                    } catch (Exception) {
+                        Console.WriteLine("выбор должен числом быть в промежутке 1-4");
                         continue;
                     }
 
                     if(!(choice >= 1 && choice <= 4)){
-                        System.Console.WriteLine("выбор должен числом быть в промежутке 1-4");
+                        Console.WriteLine("выбор должен числом быть в промежутке 1-4");
                         continue;
                     }
 
@@ -123,9 +137,8 @@ namespace MySystem {
                 } 
 
                 bool validCitizenship = false;
-
                 while(!validCitizenship) {
-                    System.Console.WriteLine(
+                    Console.WriteLine(
                         "Введите гражданство:\n" +
                         "1. Таджикистанец\n" +
                         "2. Иностранец"
@@ -135,13 +148,13 @@ namespace MySystem {
 
                     try {
                         choice = int.Parse(Console.ReadLine());
-                    } catch (System.Exception) {
-                        System.Console.WriteLine("выбор должен числом быть в промежутке 1-2");
+                    } catch (Exception) {
+                        Console.WriteLine("выбор должен числом быть в промежутке 1-2");
                         continue;
                     }
 
                     if(!(choice >= 1 && choice <= 2)){
-                        System.Console.WriteLine("выбор должен числом быть в промежутке 1-2");
+                        Console.WriteLine("выбор должен числом быть в промежутке 1-2");
                         continue;
                     }
 
@@ -149,21 +162,46 @@ namespace MySystem {
 
                     userCitizenship = choice == 1 ? Citizenship.Tajik : Citizenship.Foreigner;
                 }
-                registered = true;
+               
+                resultUser = new User() {
+                    PhoneNumber = userPhoneNumber,
+                    Type = userType,
+                    Gender = userGender,
+                    MaritalStatus = userMartialStatus,
+                    Citizenship = userCitizenship,
+                    PassportData = userPassportData
+                };
+
+                registered = queryHandler.AddUser(resultUser);
+
+                Console.WriteLine(registered ? "Пользователь успешно зарегестрирован" : "Не удалось добавить пользователя");
             }
-            //TODO: добавление в базу данных через SQL
-            return new User() {
-                PhoneNumber = userPhoneNumber,
-                Type = userType,
-                Gender = userGender,
-                MaritalStatus = userMartialStatus,
-                Citizenship = userCitizenship,
-                PassportData = userPassportData
-            };
+            
+            return resultUser;
         }
-/*
-        public User LogIn() {
-        }*/
+
+        public static User LogIn(SQLQueryHandler queryHandler) {
+            Console.Write("Введите номер телефона пользователя: ");
+            string userPhoneNumber = Console.ReadLine();
+
+            bool existingNumber = false;
+            User result = null;
+            while(!existingNumber){
+                result = queryHandler.GetUserByNumber(userPhoneNumber);
+                existingNumber = result != null;
+                
+
+                if(!existingNumber) {
+                    Console.WriteLine("Пользователя с таким номером не существует");
+
+                    continue;
+                }
+
+                existingNumber = true;
+            }
+
+            return result;
+        }
     }
 }
 
@@ -187,6 +225,6 @@ namespace MySystem {
         
         
 
-        System.Console.WriteLine(test);
-        //System.Console.WriteLine(test.CalculateScore());
+        Console.WriteLine(test);
+        //Console.WriteLine(test.CalculateScore());
 */
