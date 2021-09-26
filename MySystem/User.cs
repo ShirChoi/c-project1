@@ -50,7 +50,7 @@ public class User {
         string result =
             $"Имя: {PassportData.FirstName}, " +
             $"Фамилия: {PassportData.LastName}, " +
-            $"Очество: {PassportData.MiddleName}, " +
+            $"Отчество: {PassportData.MiddleName}, " +
             $"Дата рождения: {PassportData.BirthDate}, " +
             $"Пол: {(Gender == Gender.Male ? "Мужчина" : "Женщина")}, " +
             $"Семейное положение: {martialStatusString}, " +
