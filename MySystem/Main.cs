@@ -8,22 +8,43 @@ namespace MySystem {
                                       "Trusted_Connection=True;";
             
             SQLQueryHandler queryHandler = new SQLQueryHandler(connectionString);
-            System.Console.WriteLine("Добро пожаловать в Sarvar Bank");
+            Console.WriteLine("Добро пожаловать в Sarvar Bank");
+            bool appShouldWork = true;
             
-            int choice = 0;
+            while(appShouldWork) {
+                User user = UserQueryHandler.Logging(queryHandler);
 
-            while(!(choice >= 1 && choice <= 2)) {
-                Console.WriteLine(
-                    "1. регистрация\n" +
-                    "2. авторизация"
-                );
-                bool validInput = int.TryParse(Console.ReadLine(), out choice);
-                if(!validInput || !(choice >= 1 && choice <= 2))
-                    Console.WriteLine("выбор должен быть числом в промежутке 1-2");
+                bool userLoop = true;
+                while(userLoop) {
+                    int choice = 0;
+                    while(!(choice >= 1 && choice <= 3)) {
+                        Console.WriteLine(UserQueryHandler.UserCapabilities(user));
+                        bool validInput = int.TryParse(Console.ReadLine(), out choice);
+                        if(!validInput || !(choice >= 1 && choice <= 3))
+                            Console.WriteLine("выбор должен быть числом в промежутке 1-3");
+                    }
+                    
+                    switch(choice) {
+                        case 1: {
+                            userLoop = false;
+                            continue;
+                        }
+                        case 2: {
+                            Console.WriteLine(UserQueryHandler.PersonalCabinet(user));
+                        } break;
+                        case 3: {
+                            if(user.Type == UserType.Admin)
+                                UserQueryHandler.CheckUserPersonalCabinet(queryHandler);
+                            else 
+                                System.Console.WriteLine("fig tebe");
+                        } break;
+                        default: {
+                            throw new Exception("неправильный выбор");
+                        }
+                    }
+                }
+                //appShouldWork = false;
             }
-            
-            User user = choice == 1 ? UserQueryHandler.Register(queryHandler) : UserQueryHandler.LogIn(queryHandler);
-            UserQueryHandler.PersonalCabinet(user);
         }
     }
 }

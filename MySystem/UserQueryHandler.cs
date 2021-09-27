@@ -9,7 +9,22 @@ static class UserQueryHandler {
         "1. Смена пользователя\n" +
         "2. Личный кабинет\n" +
         "3. Просмотр личного кабинета другого пользователя";
-    public static User Register(SQLQueryHandler queryHandler) {
+    public static User Logging(SQLQueryHandler queryHandler) {
+        int choice = 0;
+
+        while(!(choice >= 1 && choice <= 2)) {
+            Console.WriteLine(
+                "1. регистрация\n" +
+                "2. авторизация"
+            );
+            bool validInput = int.TryParse(Console.ReadLine(), out choice);
+            if(!validInput || !(choice >= 1 && choice <= 2))
+                Console.WriteLine("выбор должен быть числом в промежутке 1-2");
+        }
+
+        return choice == 1 ? UserQueryHandler.Register(queryHandler) : UserQueryHandler.LogIn(queryHandler);
+    }
+    private static User Register(SQLQueryHandler queryHandler) {
             bool registered = false;
 
             string userPhoneNumber = "ABOBA";
@@ -162,7 +177,7 @@ static class UserQueryHandler {
             return resultUser;
         }
     
-    public static User LogIn(SQLQueryHandler queryHandler) {
+    private static User LogIn(SQLQueryHandler queryHandler) {
 
         bool existingNumber = false;
         User result = null;
@@ -186,12 +201,18 @@ static class UserQueryHandler {
         return result;
     }
 
-    public static void LogOut() {}
     public static string UserCapabilities(User user) => user.Type == UserType.Client ? adminCapability : clientCapability;
-
-    public static void PersonalCabinet(User user) {
-        System.Console.WriteLine(user);
+    
+    //для админов
+    public static void CheckUserPersonalCabinet(SQLQueryHandler queryHandler) {
+        User observedUser = UserQueryHandler.LogIn(queryHandler);
+        System.Console.WriteLine(UserQueryHandler.PersonalCabinet(observedUser));
+    }
+    public static string PersonalCabinet(User user) {
         string userTypeStr = user.Type == UserType.Client ? "Клиент" : "Администратор";
-        System.Console.WriteLine($"Тип пользователя: {userTypeStr}");        
-}
+        string result = user.ToString() + '\n' +
+                        $"Тип пользователя: {userTypeStr}";
+
+        return result;
+    }
 }
