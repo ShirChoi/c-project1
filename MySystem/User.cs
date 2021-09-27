@@ -48,13 +48,13 @@ public class User {
             _ => throw new Exception("Undefined martial status")
         };
         string result =
-            $"Имя: {PassportData.FirstName}, " +
-            $"Фамилия: {PassportData.LastName}, " +
-            $"Отчество: {PassportData.MiddleName}, " +
-            $"Дата рождения: {PassportData.BirthDate}, " +
-            $"Пол: {(Gender == Gender.Male ? "Мужчина" : "Женщина")}, " +
-            $"Семейное положение: {martialStatusString}, " +
-            $"Гражданство: {(Citizenship == Citizenship.Tajik ? "Таджик" : "Иностранец")}, " +
+            $"Имя: {PassportData.FirstName}, \n" +
+            $"Фамилия: {PassportData.LastName}, \n" +
+            $"Отчество: {PassportData.MiddleName}, \n" +
+            $"Дата рождения: {PassportData.BirthDate}, \n" +
+            $"Пол: {(Gender == Gender.Male ? "Мужчина" : "Женщина")}, \n" +
+            $"Семейное положение: {martialStatusString}, \n" +
+            $"Гражданство: {(Citizenship == Citizenship.Tajik ? "Таджик" : "Иностранец")}, \n" +
             $"Номер телефона: {PhoneNumber}";
         return result;
     }
