@@ -2,7 +2,9 @@ using System;
 
 class Credit {
     public string UserPhoneNumber {get; init;}
-    public int CreditAmountFromTotalIncome {get; init;}
+    public int CreditAmount {get; init;}
+    public int UserIncome {get; init;}
+    public int CreditAmountFromTotalIncome => (int)(((double)CreditAmount / (double)UserIncome) * 100);
     public int CreditHistory {get; init;}
     public int DelayedCreditHistory {get; init;}
     public int CreditDuration {get; init;} // должно быть в месяцах
