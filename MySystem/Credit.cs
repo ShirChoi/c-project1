@@ -2,11 +2,18 @@ using System;
 
 class Credit {
     public string UserPhoneNumber {get; init;}
+    private User _userTakingCredit = null;
+    public User UserTakingCredit(SQLQueryHandler queryHandler) {
+        if(_userTakingCredit == null)
+            return _userTakingCredit = queryHandler.GetUserByNumber(UserPhoneNumber);
+        return _userTakingCredit;
+    } 
     public int CreditAmount {get; init;}
     public int UserIncome {get; init;}
     public int CreditAmountFromTotalIncome => (int)(((double)CreditAmount / (double)UserIncome) * 100);
     public int CreditHistory {get; init;}
     public int DelayedCreditHistory {get; init;}
+    public decimal MonthlyFee => ((decimal)CreditAmount / CreditDuration) * 1.03m; 
     public int CreditDuration {get; init;} // должно быть в месяцах
     public CreditPurpose CreditPurpose {get; init;}
     public DateTime ProcessingDate {get; init; } //дата оформления
@@ -19,7 +26,6 @@ class Credit {
     //2 месяца, то там не будет 28(Февраль) + 31(Март) = 59 дней а будет 62 дня 
     //т.к. я считаю количество дней простым умножением количества месяцов на 31
     
-
     public int CalculateScore() {
         int score = 0;
 
@@ -56,6 +62,18 @@ class Credit {
         score += (int) CreditPurpose;
         score += CreditHistory > 12 ? 1 : 1; //мог написать += 1, но решил что так понятнее будет :D 
         return score;
+    }
+
+    public override string ToString() {
+        User user = _userTakingCredit;
+        string result = 
+            //$"Пользователь берущий кредит: {user.PassportData.MiddleName} {user.PassportData.FirstName} {user.PassportData.LastName} \n" +
+            $"Размер кредита: {CreditAmount} сомони\n" +
+            $"Дата взятия кредита: {ProcessingDate}\n" +
+            $"Срок кредита: {CreditDuration} месяцев\n" +
+            $"Ежемесячная оплата: {Math.Round(MonthlyFee, 2)} сомони";
+        return result;
+            
     }
 }
 
