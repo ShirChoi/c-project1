@@ -1,4 +1,5 @@
 using System.Data.SqlClient;
+using System.Collections.Generic;
 using System;
 
 class SQLQueryHandler {
@@ -62,7 +63,6 @@ class SQLQueryHandler {
         return resultUser;
     }
     
-
     public bool AddUser(in User user) {
         //SQL stuff
         string query = 
@@ -98,21 +98,86 @@ class SQLQueryHandler {
         
         return result != 0;
     } 
-}
-/*
-Введите номер телефона:+992907701324
-Введите Имя: Мехрона
-Введите Фамилию: Карамшоева
-Введите Отчество: Савлатшоевна
-Введите дату рождения:06.04.2005
-Введите свои пол(М / Ж):Ж
-Введите своё семейное положение:Не замужем
-1. Не женат / Не замужем
-2. Женат / Замужем
-3. Разведён / Разведена
-4. Вдовец / Вдова
 
-Введите гражданство:Таджикистанец
-1. Таджикистанец
-2. Иностранец
+    public bool AddCredit(in Credit credit) {
+        string query = 
+            "insert into Credits(Amount, Duration, Purpose, UserPhoneNumber, UserIncome, UserCreditHistory, UserDelayedCreditHistory, ProcessingDate)" +
+            "values (@Amount, @Duration, @Purpose, @UserPhoneNumber, @UserIncome, @UserCreditHistory, @UserDelayedCreditHistory, @ProcessingDate)";
+        SqlCommand command = sqlConnection.CreateCommand();
+        command.CommandText = query;
+        command.Parameters.AddWithValue("@Amount", credit.CreditAmount);
+        command.Parameters.AddWithValue("@Duration", credit.CreditDuration);
+        
+        string creditPurposeStr = credit.CreditPurpose switch {
+            CreditPurpose.Appliances    => "A",
+            CreditPurpose.Renovation    => "R",
+            CreditPurpose.Phone         => "P",
+            CreditPurpose.Other         => "O",
+            _ => throw new Exception("неправильная причина кредита")
+        };
+
+        command.Parameters.AddWithValue("@Purpose",                 creditPurposeStr);
+        command.Parameters.AddWithValue("@UserPhoneNumber",         credit.UserPhoneNumber);
+        command.Parameters.AddWithValue("@UserIncome",              credit.UserIncome);
+        command.Parameters.AddWithValue("@UserCreditHistory",       credit.CreditHistory);
+        command.Parameters.AddWithValue("@UserDelayedCreditHistory",credit.DelayedCreditHistory);
+        command.Parameters.AddWithValue("@ProcessingDate",          credit.ProcessingDate);
+        
+        int result = 0;
+
+        try {
+            result = command.ExecuteNonQuery();
+        } catch (System.Exception e) {
+            System.Console.WriteLine(e.Message);
+            throw;
+        }
+
+        return result != 0;
+    }
+
+    public List<Credit> GetUserCreditHistory(in User user) {
+        List<Credit> userCredits = new List<Credit>();
+
+        string query = $"select * from Credits where UserPhoneNumber = \'{user.PhoneNumber}\'";
+
+        SqlCommand command = sqlConnection.CreateCommand();
+        command.CommandText = query;
+
+        SqlDataReader reader = command.ExecuteReader();
+
+        while(reader.Read()) {
+            CreditPurpose creditPurpose = reader["Purpose"].ToString() switch {
+                "A" => CreditPurpose.Appliances ,
+                "R" => CreditPurpose.Renovation ,
+                "P" => CreditPurpose.Phone      ,
+                "O" => CreditPurpose.Other      ,
+                _ => throw new Exception("неправильная причина кредита")
+            };
+            Credit creditToAdd = new Credit() {
+                UserPhoneNumber = reader["UserPhoneNumber"].ToString(),
+                CreditAmount = int.Parse(reader["Amount"].ToString()),
+                UserIncome = int.Parse(reader["UserIncome"].ToString()),
+                CreditHistory = int.Parse(reader["UserCreditHistory"].ToString()),
+                DelayedCreditHistory = int.Parse(reader["UserDelayedCreditHistory"].ToString()),
+                CreditDuration = int.Parse(reader["Duration"].ToString()),
+                CreditPurpose = creditPurpose,
+                ProcessingDate = DateTime.Parse(reader["ProcessingDate"].ToString())
+            };
+            userCredits.Add(creditToAdd);
+            //System.Console.WriteLine(creditToAdd);
+        }
+
+        return userCredits;
+    }
+}
+/*Введите номер телефона: +992933608303
+Введите Имя: Давлатбегим. 
+Введите Фамилию: Шовалиева.
+Введите Отчество: Джамшедовна.
+Введите дату рождения: 2005.09.10
+Введите свои пол(М / Ж): ж.
+Введите своё семейное положение: Не замужем.
+
+Введите гражданство:
+Таджикистанец.  
 */
