@@ -30,18 +30,39 @@ namespace MySystem {
                             continue;
                         }
                         case 2: {
-                            Console.WriteLine(UserQueryHandler.PersonalCabinet(user));
+                            Console.WriteLine(UserQueryHandler.PersonalCabinet(user, queryHandler));
                         } break;
                         case 3: {
                             if(user.Type == UserType.Admin)
                                 UserQueryHandler.CheckUserPersonalCabinet(queryHandler);
-                            else 
-                                System.Console.WriteLine("fig tebe");
+                            else  {
+                                Credit credit = UserQueryHandler.TakeCredit(user, out int score);
+
+                                if(credit == null){
+                                    System.Console.WriteLine(
+                                        "Недостаточно балллов для взятия кредита\n" +
+                                        $"У вас: {score} баллов\n" +
+                                        "Минимально необходимое количество баллов для взятия кредита: 11"
+                                    );
+                                    System.Console.WriteLine();
+                                    continue;
+                                }
+                                
+                                credit.UserTakingCredit(queryHandler);
+                                bool creditTaken = queryHandler.AddCredit(credit);
+                                if(!creditTaken) {
+                                    System.Console.WriteLine("Не удалось оформить кредит");
+                                    continue;
+                                }
+                                System.Console.WriteLine("Кредит успешно оформлен");
+                                System.Console.WriteLine(credit);
+                            }
                         } break;
                         default: {
                             throw new Exception("неправильный выбор");
                         }
                     }
+                    System.Console.WriteLine();
                 }
                 //appShouldWork = false;
             }
