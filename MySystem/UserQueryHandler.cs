@@ -8,7 +8,7 @@ static class UserQueryHandler {
     private const string clientCapability = 
         "1. Смена пользователя\n" +
         "2. Личный кабинет\n" +
-        "3. Просмотр личного кабинета другого пользователя";
+        "3. Оформить кредит";
     public static User Logging(SQLQueryHandler queryHandler) {
         int choice = 0;
 
@@ -200,18 +200,117 @@ static class UserQueryHandler {
 
         return result;
     }
+    public static Credit TakeCredit(User user, out int score) {
+        int userIncome = -1;
+        while(userIncome <= 0){
+            Console.Write("Введите свою заработную плату:");
+            bool validInput = int.TryParse(Console.ReadLine(), out userIncome);
+            
+            if(!validInput || userIncome <= 0) {
+                Console.WriteLine("Заработная плата должна быть целым положительным числом");
+            }
+        }
 
-    public static string UserCapabilities(User user) => user.Type == UserType.Client ? adminCapability : clientCapability;
+        int creditAmount = -1;
+        while(creditAmount <= 0){
+            Console.Write("Введите сумму кредита:");
+            bool validInput = int.TryParse(Console.ReadLine(), out creditAmount);
+            
+            if(!validInput || creditAmount <= 0) {
+                Console.WriteLine("Сумма кредита должна быть целым положительным числом");
+            }
+        }
+
+        int creditHistory = -1;
+        while(creditHistory < 0){
+            Console.Write("Введите количество погашенных кредитов:");
+            bool validInput = int.TryParse(Console.ReadLine(), out creditHistory);
+            
+            if(!validInput || creditHistory < 0) {
+                Console.WriteLine("количество погашенных кредитов должна быть целым неотрицательным числом");
+            }
+        }
+
+        int delayedCreditHistory = -1;
+        while(delayedCreditHistory < 0) {
+            Console.Write("Введите количество просроков в кредитной истории:");
+            bool validInput = int.TryParse(Console.ReadLine(), out delayedCreditHistory);
+            
+            if(!validInput || delayedCreditHistory < 0) {
+                Console.WriteLine("число просроков должно быть целым неотрицательным числом");
+            }
+        }
+
+        int creditPurposeInt = -1;
+        while(creditPurposeInt < 1 || creditPurposeInt > 4) {
+            Console.WriteLine(
+                "Введите цель кредита:\n" +
+                "1. Бытовая техника\n" +
+                "2. Ремонт\n" +
+                "3. Телефон\n" +
+                "4. другое"
+            );
+
+            bool validInput = int.TryParse(Console.ReadLine(), out creditPurposeInt);
+            
+            if(!validInput || creditPurposeInt < 1 || creditPurposeInt > 4) {
+                Console.WriteLine("выбор должен быть числом в промежутке 1-4");
+            }
+        }
+        
+        CreditPurpose creditPurpose = creditPurposeInt switch {
+            1 => CreditPurpose.Appliances,
+            2 => CreditPurpose.Renovation,
+            3 => CreditPurpose.Phone,
+            4 => CreditPurpose.Other,
+            _ => throw new Exception("неверный выбор для причиный кредита")
+        };
+        
+        int creditDuration = -1;
+
+        while(creditDuration <= 0) {
+            Console.Write("введите срок кредита:");
+            bool validInput = int.TryParse(Console.ReadLine(), out creditDuration);
+            
+            if(!validInput || creditDuration < 0) {
+                Console.WriteLine("срок кредита должен быть целым положительным");
+            }
+        }
+
+        Credit credit = new Credit() {
+            UserPhoneNumber         = user.PhoneNumber,
+            CreditAmount            = creditAmount,
+            UserIncome              = userIncome,
+            CreditHistory           = creditHistory,
+            DelayedCreditHistory    = delayedCreditHistory,
+            CreditDuration          = creditDuration,
+            CreditPurpose           = creditPurpose,
+            ProcessingDate          = DateTime.Now,
+        };
+        score = credit.CalculateScore() + user.CalculateScore();
+        return score > 11 ? credit : null;
+    }
+    public static string UserCapabilities(User user) => user.Type == UserType.Admin ? adminCapability : clientCapability;
     
     //для админов
     public static void CheckUserPersonalCabinet(SQLQueryHandler queryHandler) {
         User observedUser = UserQueryHandler.LogIn(queryHandler);
-        System.Console.WriteLine(UserQueryHandler.PersonalCabinet(observedUser));
+        System.Console.WriteLine(UserQueryHandler.PersonalCabinet(observedUser, queryHandler));
     }
-    public static string PersonalCabinet(User user) {
+    public static string PersonalCabinet(User user, SQLQueryHandler queryHandler) {
         string userTypeStr = user.Type == UserType.Client ? "Клиент" : "Администратор";
         string result = user.ToString() + '\n' +
                         $"Тип пользователя: {userTypeStr}";
+                        
+        if(user.Type == UserType.Admin)
+            return result;
+
+        result += "\n\nКредитная история:";
+        var Credits = queryHandler.GetUserCreditHistory(user);
+
+        foreach(Credit credit in Credits) {
+            result += "\n\n" + credit.ToString();
+        }
 
         return result;
     }
