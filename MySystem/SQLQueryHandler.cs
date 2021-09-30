@@ -167,6 +167,8 @@ class SQLQueryHandler {
             //System.Console.WriteLine(creditToAdd);
         }
 
+        reader.Close();
+
         return userCredits;
     }
 }
