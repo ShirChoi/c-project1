@@ -305,8 +305,15 @@ static class UserQueryHandler {
         if(user.Type == UserType.Admin)
             return result;
 
-        result += "\n\nКредитная история:";
         var Credits = queryHandler.GetUserCreditHistory(user);
+
+        result += "\n\nКредитная история:";
+
+        if(Credits.Count == 0){
+            result += "\n\nНет кредитной историй";
+
+            return result;
+        }
 
         foreach(Credit credit in Credits) {
             result += "\n\n" + credit.ToString();
