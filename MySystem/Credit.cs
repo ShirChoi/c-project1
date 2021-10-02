@@ -66,9 +66,18 @@ class Credit {
 
     public override string ToString() {
         User user = _userTakingCredit;
+        string creditPurposeStr = CreditPurpose switch {
+            CreditPurpose.Appliances    => "бытовая техника",
+            CreditPurpose.Renovation    => "ремонт",
+            CreditPurpose.Phone         => "телефон",
+            CreditPurpose.Other         => "другое",
+            _ => throw new Exception("неправильная причина кредита")
+        };;
         string result = 
             //$"Пользователь берущий кредит: {user.PassportData.MiddleName} {user.PassportData.FirstName} {user.PassportData.LastName} \n" +
             $"Размер кредита: {CreditAmount} сомони\n" +
+            $"Процент кредита: 3%\n" +
+            $"Цель кредита: {creditPurposeStr}\n" +
             $"Дата взятия кредита: {ProcessingDate}\n" +
             $"Срок кредита: {CreditDuration} месяцев\n" +
             $"Ежемесячная оплата: {Math.Round(MonthlyFee, 2)} сомони";
